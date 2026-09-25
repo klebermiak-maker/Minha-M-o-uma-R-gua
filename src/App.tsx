@@ -194,6 +194,7 @@ export default function App() {
             completedLevels={completedLevels}
             onCompleteLevel={handleCompleteLevel}
             onSelectLevelIndex={setCurrentLevelIndex}
+            onAddStar={handleAddStar}
           />
         )}
 

@@ -18,7 +18,9 @@ import { QUIZ_QUESTIONS, QuizQuestion } from '../utils/fractionData';
 import { AVATAR_ACCESSORIES, AvatarAccessory } from '../types/avatar';
 import { HandAvatar } from './HandAvatar';
 import { TimedQuizChallenge } from './TimedQuizChallenge';
+import { QuizInteractiveTutorial } from './QuizInteractiveTutorial';
 import { sound, speakPortuguese } from '../utils/sound';
+import { GraduationCap } from 'lucide-react';
 
 interface QuizModeProps {
   stars: number;
@@ -39,7 +41,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({
   skinToneId,
   onOpenCloset,
 }) => {
-  const [subTab, setSubTab] = useState<'practice' | 'timed'>('practice');
+  const [subTab, setSubTab] = useState<'tutorial' | 'practice' | 'timed'>('practice');
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
   const [answeredState, setAnsweredState] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -138,14 +140,29 @@ export const QuizMode: React.FC<QuizModeProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Sub-mode Tab Switcher: Prática Calma vs Desafio Cronometrado */}
-      <div className="bg-amber-100/70 border border-amber-300 rounded-2xl p-1.5 flex items-center justify-center max-w-md mx-auto shadow-2xs">
+      {/* Sub-mode Tab Switcher: Tutorial Interativo vs Prática Calma vs Desafio Cronometrado */}
+      <div className="bg-amber-100/70 border border-amber-300 rounded-2xl p-1.5 flex flex-wrap items-center justify-center max-w-xl mx-auto shadow-2xs gap-1">
+        <button
+          onClick={() => {
+            sound.playTap();
+            setSubTab('tutorial');
+          }}
+          className={`flex-1 min-w-[140px] py-2 px-3 rounded-xl font-display text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            subTab === 'tutorial'
+              ? 'bg-amber-600 text-white shadow-xs'
+              : 'text-stone-700 hover:text-amber-950 hover:bg-amber-200/50'
+          }`}
+        >
+          <GraduationCap className="w-4 h-4" />
+          <span>Tutorial Interativo 🎓</span>
+        </button>
+
         <button
           onClick={() => {
             sound.playTap();
             setSubTab('practice');
           }}
-          className={`flex-1 py-2 px-3 rounded-xl font-display text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`flex-1 min-w-[140px] py-2 px-3 rounded-xl font-display text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             subTab === 'practice'
               ? 'bg-amber-600 text-white shadow-xs'
               : 'text-stone-700 hover:text-amber-950 hover:bg-amber-200/50'
@@ -160,7 +177,7 @@ export const QuizMode: React.FC<QuizModeProps> = ({
             sound.playTap();
             setSubTab('timed');
           }}
-          className={`flex-1 py-2 px-3 rounded-xl font-display text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`flex-1 min-w-[140px] py-2 px-3 rounded-xl font-display text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             subTab === 'timed'
               ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-xs'
               : 'text-stone-700 hover:text-amber-950 hover:bg-amber-200/50'
@@ -172,17 +189,49 @@ export const QuizMode: React.FC<QuizModeProps> = ({
       </div>
 
       {/* Render Selected Quiz Sub-Mode */}
-      {subTab === 'timed' ? (
+      {subTab === 'tutorial' ? (
+        <QuizInteractiveTutorial
+          onStartQuiz={() => {
+            sound.playTap();
+            setSubTab('practice');
+          }}
+          onStartTimedQuiz={() => {
+            sound.playTap();
+            setSubTab('timed');
+          }}
+        />
+      ) : subTab === 'timed' ? (
         <TimedQuizChallenge
           stars={stars}
           onAddBonusStars={onAddBonusStars}
           equippedIds={equippedIds}
           skinToneId={skinToneId}
           onOpenCloset={onOpenCloset}
+          onOpenTutorial={() => {
+            sound.playTap();
+            setSubTab('tutorial');
+          }}
         />
       ) : (
         /* Regular Practice Mode */
         <div className="space-y-6">
+          {/* Quick Tutorial Callout Banner */}
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
+            <span className="text-amber-950 font-medium">
+              💡 Dúvidas sobre frações em pizza ou barras? Reveja o tutorial interativo com explicações visuais!
+            </span>
+            <button
+              onClick={() => {
+                sound.playTap();
+                setSubTab('tutorial');
+              }}
+              className="px-3 py-1.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold font-display transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Ver Tutorial</span>
+            </button>
+          </div>
+
           {/* Quiz Progress & Avatar Companion Header Bar */}
           <div className="bg-white/95 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

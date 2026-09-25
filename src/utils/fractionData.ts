@@ -285,6 +285,148 @@ export const STORY_LEVELS: StoryLevel[] = [
   },
 ];
 
+export function generateRandomMission(previousId?: number): StoryLevel {
+  const templates = [
+    {
+      titleTemplate: 'O Lanche da Menina: Fatias de Pizza',
+      bookScene: 'Depois de um dia medindo a casa toda, a mamãe preparou uma pizza quentinha para comemorar!',
+      bodyMeasurement: 'palmo' as const,
+      bodyMeasurementLabel: 'Fatias de Pizza da Festa',
+      narrativeTemplate: (n: number, d: number) =>
+        `A família vai comer exatamente ${n}/${d} (${getFractionName(n, d)}) da pizza deliciosa. Fatie a pizza ou use réguas para colorir essa fração!`,
+      questionTemplate: (n: number, d: number) =>
+        `Represente a fração ${n}/${d} (${getFractionName(n, d)}) fatiando e pintando a pizza:`,
+      visualType: 'fabric' as const,
+    },
+    {
+      titleTemplate: 'A Cortina da Sala com Palmos',
+      bookScene: 'A menina estica a mãozinha: "Polegar de um lado, mindinho do outro: um palmo bem aberto!"',
+      bodyMeasurement: 'palmo' as const,
+      bodyMeasurementLabel: 'Régua de Palmos',
+      narrativeTemplate: (n: number, d: number) =>
+        `A mamãe está cortando uma cortina floral e precisa de exatamente ${n}/${d} da largura do tecido medido em palmos.`,
+      questionTemplate: (n: number, d: number) =>
+        `Divida em partes iguais e pinte ${n} partes para formar ${n}/${d}:`,
+      visualType: 'fabric' as const,
+    },
+    {
+      titleTemplate: 'Os Passos no Canteiro de Flores',
+      bookScene: '"Nosso jardim tem flores de todas as cores e passos de terra fofa!"',
+      bodyMeasurement: 'passo' as const,
+      bodyMeasurementLabel: 'Passos no Canteiro',
+      narrativeTemplate: (n: number, d: number) =>
+        `A menina vai regar ${n}/${d} do caminho das margaridas. Cada trecho é medido com passos firmes um atrás do outro.`,
+      questionTemplate: (n: number, d: number) =>
+        `Pinte ${n} de ${d} partes para marcar ${n}/${d} da trilha:`,
+      visualType: 'gardenPath' as const,
+    },
+    {
+      titleTemplate: 'A Estante de Livros em Pés',
+      bookScene: 'Calcanhar coladinho no dedão! Um pé na frente do outro para medir a estante de madeira.',
+      bodyMeasurement: 'pe' as const,
+      bodyMeasurementLabel: 'Pés (Calcanhar com Dedão)',
+      narrativeTemplate: (n: number, d: number) =>
+        `Os livrinhos ilustrados da menina ocuparam exatamente ${n}/${d} de toda a prateleira.`,
+      questionTemplate: (n: number, d: number) =>
+        `Represente a fração ${n}/${d} pintando as partes correspondentes:`,
+      visualType: 'measuringTape' as const,
+    },
+    {
+      titleTemplate: 'Abraçando a Árvore do Quintal',
+      bookScene: '"Abra bem os braços! Uma braçada, duas braçadas: como essa árvore é imensa!"',
+      bodyMeasurement: 'bracada' as const,
+      bodyMeasurementLabel: 'Braçadas do Papai',
+      narrativeTemplate: (n: number, d: number) =>
+        `A menina e o papai já deram a volta em ${n}/${d} da circunferência do tronco da grande árvore.`,
+      questionTemplate: (n: number, d: number) =>
+        `Forme a fração ${n}/${d} na pizza circular ou nos blocos:`,
+      visualType: 'treeTrunk' as const,
+    },
+    {
+      titleTemplate: 'Os Botões do Casaco de Inverno',
+      bookScene: 'A vovó separou lã macia e botões redondinhos para costurar o casaco novo.',
+      bodyMeasurement: 'palmo' as const,
+      bodyMeasurementLabel: 'Botões & Costura',
+      narrativeTemplate: (n: number, d: number) =>
+        `A mamãe já costurou ${n}/${d} dos botões do casaco da menina.`,
+      questionTemplate: (n: number, d: number) =>
+        `Selecione as partes necessárias para formar ${n}/${d}:`,
+      visualType: 'buttons' as const,
+    },
+    {
+      titleTemplate: 'O Tapete Colorido da Sala',
+      bookScene: 'O chão da sala tem um tapete geométrico feito com faixas de lã trançada.',
+      bodyMeasurement: 'passo' as const,
+      bodyMeasurementLabel: 'Passos no Tapete',
+      narrativeTemplate: (n: number, d: number) =>
+        `O gatinho da família deitou em ${n}/${d} das faixas do tapete da sala.`,
+      questionTemplate: (n: number, d: number) =>
+        `Pinte as fatias ou blocos para marcar ${n}/${d}:`,
+      visualType: 'checkeredRug' as const,
+    },
+    {
+      titleTemplate: 'A Fita de Cetim do Vestido',
+      bookScene: 'A mamãe puxa a fita brilhante para fazer um lindo laço na cintura do vestido.',
+      bodyMeasurement: 'palmo' as const,
+      bodyMeasurementLabel: 'Palmos na Fita',
+      narrativeTemplate: (n: number, d: number) =>
+        `Para dar o laço perfeito, são necessários ${n}/${d} do carretel de fita brilhante.`,
+      questionTemplate: (n: number, d: number) =>
+        `Divida em partes iguais e represente a fração ${n}/${d}:`,
+      visualType: 'measuringTape' as const,
+    },
+  ];
+
+  // Pick educational fractions for 3rd grade (BNCC)
+  const validFractions = [
+    { n: 1, d: 2 },
+    { n: 1, d: 3 },
+    { n: 2, d: 3 },
+    { n: 1, d: 4 },
+    { n: 2, d: 4 },
+    { n: 3, d: 4 },
+    { n: 1, d: 5 },
+    { n: 2, d: 5 },
+    { n: 3, d: 5 },
+    { n: 4, d: 5 },
+    { n: 1, d: 6 },
+    { n: 2, d: 6 },
+    { n: 3, d: 6 },
+    { n: 4, d: 6 },
+    { n: 5, d: 6 },
+    { n: 2, d: 8 },
+    { n: 3, d: 8 },
+    { n: 4, d: 8 },
+    { n: 5, d: 8 },
+    { n: 6, d: 8 },
+    { n: 7, d: 8 },
+    { n: 3, d: 10 },
+    { n: 5, d: 10 },
+    { n: 7, d: 10 },
+  ];
+
+  const frac = validFractions[Math.floor(Math.random() * validFractions.length)];
+  const tpl = templates[Math.floor(Math.random() * templates.length)];
+  const randomId = 1000 + Math.floor(Math.random() * 90000);
+
+  return {
+    id: randomId,
+    title: tpl.titleTemplate,
+    bookScene: tpl.bookScene,
+    bodyMeasurement: tpl.bodyMeasurement,
+    bodyMeasurementLabel: tpl.bodyMeasurementLabel,
+    narrative: tpl.narrativeTemplate(frac.n, frac.d),
+    question: tpl.questionTemplate(frac.n, frac.d),
+    targetNumerator: frac.n,
+    targetDenominator: frac.d,
+    initialDenominator: frac.d,
+    allowDenominatorChange: true,
+    visualType: tpl.visualType,
+    hint: `Divida o todo em ${frac.d} fatias iguais e pinte ${frac.n} partes! Ou use uma fração equivalente.`,
+    pedagogicalTip: `${frac.n}/${frac.d} (${getFractionName(frac.n, frac.d)}): o número ${frac.d} é o total de partes do todo e o número ${frac.n} são as partes consideradas.`,
+  };
+}
+
 export interface QuizQuestion {
   id: number;
   question: string;

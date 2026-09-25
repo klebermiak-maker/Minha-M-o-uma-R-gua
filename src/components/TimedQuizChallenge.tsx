@@ -24,6 +24,7 @@ interface TimedQuizChallengeProps {
   equippedIds: string[];
   skinToneId: string;
   onOpenCloset: () => void;
+  onOpenTutorial?: () => void;
 }
 
 const TOTAL_TIME_SECONDS = 30;
@@ -36,6 +37,7 @@ export const TimedQuizChallenge: React.FC<TimedQuizChallengeProps> = ({
   equippedIds,
   skinToneId,
   onOpenCloset,
+  onOpenTutorial,
 }) => {
   const [gameState, setGameState] = useState<'ready' | 'running' | 'won' | 'timeout'>('ready');
   const [timeLeft, setTimeLeft] = useState<number>(TOTAL_TIME_SECONDS);
@@ -283,14 +285,24 @@ export const TimedQuizChallenge: React.FC<TimedQuizChallengeProps> = ({
           )}
 
           {/* Start CTA */}
-          <div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={handleStartGame}
-              className="px-8 py-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-display font-bold text-lg shadow-lg flex items-center gap-2.5 mx-auto transition-all transform active:scale-95 cursor-pointer"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-display font-bold text-base sm:text-lg shadow-lg flex items-center justify-center gap-2.5 transition-all transform active:scale-95 cursor-pointer"
             >
               <Play className="w-5 h-5 fill-white" />
               Iniciar Corrida das Frações!
             </button>
+
+            {onOpenTutorial && (
+              <button
+                type="button"
+                onClick={onOpenTutorial}
+                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl border-2 border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <span>Revisar Formas no Tutorial 🎓</span>
+              </button>
+            )}
           </div>
         </div>
       )}
