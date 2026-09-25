@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import {
   Sparkles,
@@ -9,8 +9,10 @@ import {
   Volume2,
   RefreshCw,
   BookOpen,
+  PieChart,
+  Target,
 } from 'lucide-react';
-import { STORY_LEVELS, StoryLevel } from '../utils/fractionData';
+import { STORY_LEVELS, StoryLevel, getFractionName } from '../utils/fractionData';
 import { VisualFractionCanvas } from './VisualFractionCanvas';
 import { FractionDisplay } from './FractionDisplay';
 import { DressVisualizer } from './DressVisualizer';
@@ -40,6 +42,7 @@ export const StoryMode: React.FC<StoryModeProps> = ({
   const [feedback, setFeedback] = useState<{
     status: 'idle' | 'success' | 'retry';
     message: string;
+    isEquivalence?: boolean;
   }>({
     status: 'idle',
     message: '',
@@ -47,12 +50,23 @@ export const StoryMode: React.FC<StoryModeProps> = ({
   const [showHint, setShowHint] = useState<boolean>(false);
 
   // Sync state when level changes
-  React.useEffect(() => {
+  useEffect(() => {
     setDenominator(currentLevel.initialDenominator);
     setSelectedIndices([]);
     setFeedback({ status: 'idle', message: '' });
     setShowHint(false);
-  }, [currentLevelIndex]);
+  }, [currentLevelIndex, currentLevel.initialDenominator]);
+
+  const targetValue = currentLevel.targetNumerator / currentLevel.targetDenominator;
+  const isLevelCompleted = completedLevels.includes(currentLevel.id);
+
+  const checkSolution = (num: number, den: number) => {
+    if (den === 0) return { isCorrect: false, isEquivalence: false };
+    const val = num / den;
+    const isCorrect = Math.abs(val - targetValue) < 0.0001;
+    const isEquivalence = isCorrect && (num !== currentLevel.targetNumerator || den !== currentLevel.targetDenominator);
+    return { isCorrect, isEquivalence };
+  };
 
   const handleToggleSegment = (index: number) => {
     let next: number[];
@@ -63,45 +77,7 @@ export const StoryMode: React.FC<StoryModeProps> = ({
     }
     setSelectedIndices(next);
 
-    // Immediate check if it matches target!
-    const isTarget =
-      next.length === currentLevel.targetNumerator &&
-      denominator === currentLevel.targetDenominator;
-
-    if (isTarget) {
-      sound.playConfettiPopper();
-      sound.playStarEarned();
-      setTimeout(() => {
-        sound.playApplause();
-      }, 250);
-
-      try {
-        confetti({
-          particleCount: 50,
-          spread: 70,
-          origin: { y: 0.65 },
-          colors: ['#f59e0b', '#10b981', '#ec4899', '#3b82f6'],
-        });
-      } catch {
-        // ignore
-      }
-
-      setFeedback({
-        status: 'success',
-        message: `Excelente! Você representou ${next.length}/${denominator} certinho! A medição está perfeita!`,
-      });
-      speakPortuguese(`Muito bem! Você representou a fração ${next.length} sobre ${denominator} corretamente!`);
-      onCompleteLevel(currentLevel.id);
-    } else {
-      setFeedback({ status: 'idle', message: '' });
-    }
-  };
-
-  const handleCheckAnswer = () => {
-    const num = selectedIndices.length;
-    const isCorrect =
-      num === currentLevel.targetNumerator &&
-      denominator === currentLevel.targetDenominator;
+    const { isCorrect, isEquivalence } = checkSolution(next.length, denominator);
 
     if (isCorrect) {
       sound.playConfettiPopper();
@@ -112,8 +88,52 @@ export const StoryMode: React.FC<StoryModeProps> = ({
 
       try {
         confetti({
-          particleCount: 60,
-          spread: 70,
+          particleCount: 55,
+          spread: 75,
+          origin: { y: 0.65 },
+          colors: ['#f59e0b', '#10b981', '#ec4899', '#3b82f6', '#f43f5e'],
+        });
+      } catch {
+        // ignore
+      }
+
+      const successMsg = isEquivalence
+        ? `Sensacional! Você descobriu uma fração equivalente: ${next.length}/${denominator} tem exatamente o mesmo tamanho que ${currentLevel.targetNumerator}/${currentLevel.targetDenominator}!`
+        : `Excelente! Você representou ${next.length}/${denominator} com exatidão! A medição está perfeita!`;
+
+      setFeedback({
+        status: 'success',
+        message: successMsg,
+        isEquivalence,
+      });
+
+      speakPortuguese(
+        isEquivalence
+          ? `Muito bem! ${next.length} sobre ${denominator} equivale a ${currentLevel.targetNumerator} sobre ${currentLevel.targetDenominator}!`
+          : `Muito bem! Você representou a fração ${next.length} sobre ${denominator} corretamente!`
+      );
+
+      onCompleteLevel(currentLevel.id);
+    } else {
+      setFeedback({ status: 'idle', message: '' });
+    }
+  };
+
+  const handleCheckAnswer = () => {
+    const num = selectedIndices.length;
+    const { isCorrect, isEquivalence } = checkSolution(num, denominator);
+
+    if (isCorrect) {
+      sound.playConfettiPopper();
+      sound.playStarEarned();
+      setTimeout(() => {
+        sound.playApplause();
+      }, 250);
+
+      try {
+        confetti({
+          particleCount: 65,
+          spread: 75,
           origin: { y: 0.65 },
           colors: ['#f59e0b', '#10b981', '#ec4899', '#3b82f6'],
         });
@@ -123,19 +143,24 @@ export const StoryMode: React.FC<StoryModeProps> = ({
 
       setFeedback({
         status: 'success',
-        message: `Parabéns! Você representou ${num}/${denominator} certinho! A mamãe adorou a medição!`,
+        message: isEquivalence
+          ? `Parabéns! ${num}/${denominator} equivale exatamente a ${currentLevel.targetNumerator}/${currentLevel.targetDenominator}!`
+          : `Parabéns! Você representou ${num}/${denominator} certinho! A mamãe adorou a medição!`,
+        isEquivalence,
       });
-      speakPortuguese(`Muito bem! Você representou a fração ${num} sobre ${denominator} corretamente!`);
+      speakPortuguese(`Muito bem! Você acertou a fração da missão!`);
       onCompleteLevel(currentLevel.id);
     } else {
       sound.playHint();
+      const currentVal = num / denominator;
       let hintMsg = '';
-      if (denominator !== currentLevel.targetDenominator) {
-        hintMsg = `Primeiro divida o todo em ${currentLevel.targetDenominator} partes iguais!`;
-      } else if (num < currentLevel.targetNumerator) {
-        hintMsg = `Você selecionou ${num} partes, mas precisamos de ${currentLevel.targetNumerator} partes (${currentLevel.targetNumerator}/${currentLevel.targetDenominator}). Selecione mais uma parte!`;
+
+      if (num === 0) {
+        hintMsg = `Toque nas fatias da pizza ou blocos da fita para pintar a fração ${currentLevel.targetNumerator}/${currentLevel.targetDenominator}!`;
+      } else if (currentVal < targetValue) {
+        hintMsg = `Você selecionou ${num}/${denominator}. Precisamos de ${currentLevel.targetNumerator}/${currentLevel.targetDenominator} (${getFractionName(currentLevel.targetNumerator, currentLevel.targetDenominator)}). Pinte mais uma parte!`;
       } else {
-        hintMsg = `Você selecionou ${num} partes. Precisamos de apenas ${currentLevel.targetNumerator} partes. Clique para desmarcar ${num - currentLevel.targetNumerator} partes!`;
+        hintMsg = `Você selecionou ${num}/${denominator}, que é maior que a meta. Desmarque algumas partes para chegar a ${currentLevel.targetNumerator}/${currentLevel.targetDenominator}!`;
       }
 
       setFeedback({
@@ -153,10 +178,10 @@ export const StoryMode: React.FC<StoryModeProps> = ({
 
   const handleReadScene = () => {
     sound.playTap();
-    speakPortuguese(`${currentLevel.bookScene}. ${currentLevel.narrative}. ${currentLevel.question}`);
+    speakPortuguese(
+      `Fase ${currentLevelIndex + 1}: ${currentLevel.title}. Sua missão é: ${currentLevel.question}`
+    );
   };
-
-  const isLevelCompleted = completedLevels.includes(currentLevel.id);
 
   // Pick illustrative scene banner from generated images based on level
   const sceneBanner =
@@ -173,7 +198,7 @@ export const StoryMode: React.FC<StoryModeProps> = ({
         <div className="flex items-center justify-between mb-2 px-1">
           <span className="text-xs font-bold font-display uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5 text-amber-700" />
-            Capítulos do Livro & Desafios de Fração
+            Capítulos do Livro & Missões de Fração
           </span>
           <span className="text-xs text-amber-800 font-semibold tabular-nums">
             Fase {currentLevelIndex + 1} de {STORY_LEVELS.length}
@@ -210,103 +235,144 @@ export const StoryMode: React.FC<StoryModeProps> = ({
 
       {/* Main Two-Zone Stage */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Interactive Stage & Canvas (7 cols) */}
+        {/* Left Column: Interactive Stage & Canvas (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Story Prompt Card */}
-          <div className="bg-white/95 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-xs font-semibold text-amber-700 font-handwriting">
-                  {currentLevel.bodyMeasurementLabel}
-                </span>
-                <h2 className="text-lg sm:text-xl font-bold font-display text-amber-950">
+          {/* Crystal Clear Mission Card */}
+          <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 border-2 border-amber-500 rounded-3xl p-5 shadow-sm space-y-3 relative overflow-hidden">
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/90 text-amber-950 text-xs font-bold font-display shadow-2xs">
+                  <Target className="w-3.5 h-3.5 text-amber-700" />
+                  Missão #{currentLevelIndex + 1} · {currentLevel.bodyMeasurementLabel}
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold font-display text-amber-950">
                   {currentLevel.title}
                 </h2>
+                <p className="text-xs sm:text-sm text-amber-950/85 font-medium leading-relaxed">
+                  {currentLevel.narrative}
+                </p>
               </div>
-              <button
-                onClick={handleReadScene}
-                title="Ouvir a história desta fase"
-                className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 flex items-center gap-1 text-xs font-semibold transition-colors cursor-pointer"
-              >
-                <Volume2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Ouvir Texto</span>
-              </button>
+
+              {/* Prominent Target Fraction Badge */}
+              <div className="flex items-center gap-3 bg-white/95 border-2 border-amber-600 p-3 rounded-2xl shadow-sm shrink-0">
+                <div className="text-center">
+                  <span className="text-[10px] font-bold uppercase text-amber-800 block font-display">
+                    Sua Meta
+                  </span>
+                  <div className="text-2xl font-bold font-mono text-amber-950 flex items-center justify-center">
+                    {currentLevel.targetNumerator}/{currentLevel.targetDenominator}
+                  </div>
+                  <span className="text-[10px] text-stone-600 font-semibold block">
+                    {getFractionName(currentLevel.targetNumerator, currentLevel.targetDenominator)}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleReadScene}
+                  title="Ouvir a missão da fase"
+                  className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 transition-colors cursor-pointer"
+                >
+                  <Volume2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Book scene quote */}
-            <div className="bg-amber-50 border-l-4 border-amber-500 p-2.5 rounded-r-lg text-xs sm:text-sm text-amber-900 italic font-handwriting">
+            <div className="relative z-10 bg-white/70 border-l-4 border-amber-700 p-2.5 rounded-r-xl text-xs sm:text-sm text-amber-950 italic font-handwriting">
               "{currentLevel.bookScene}"
-            </div>
-
-            {/* Context narrative */}
-            <p className="text-sm text-stone-700 leading-relaxed">
-              {currentLevel.narrative}
-            </p>
-
-            {/* Target Question */}
-            <div className="p-3 bg-amber-100/70 border border-amber-300 rounded-xl">
-              <span className="text-xs font-bold uppercase text-amber-900 block mb-0.5">
-                Sua Missão:
-              </span>
-              <p className="text-sm font-semibold text-stone-900">
-                {currentLevel.question}
-              </p>
             </div>
           </div>
 
-          {/* Denominator Selector (when allowed in advanced levels) */}
-          {currentLevel.allowDenominatorChange && (
-            <div className="bg-amber-50 border border-amber-300/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-stone-700">
-                Em quantas partes iguais você quer dividir o tecido? (Denominador):
+          {/* Step 1: Denominator / Slicing Selector */}
+          <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-4 shadow-xs space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-amber-950 font-display flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">
+                  1
+                </span>
+                Quantas fatias ou partes iguais dividir o todo? (Denominador):
               </span>
-              <div className="flex items-center gap-1.5">
-                {[2, 3, 4, 5, 6, 8].map((den) => (
+              <span className="text-xs font-mono font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md">
+                {denominator} partes iguais
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[2, 3, 4, 5, 6, 8, 10].map((den) => {
+                const isSelected = denominator === den;
+                const isTargetDen = den === currentLevel.targetDenominator;
+
+                return (
                   <button
                     key={den}
+                    type="button"
                     onClick={() => {
                       sound.playTap();
                       setDenominator(den);
                       setSelectedIndices([]);
                     }}
-                    className={`px-2.5 py-1 text-xs font-bold rounded-lg cursor-pointer transition-colors ${
-                      denominator === den
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-white border border-amber-300 text-stone-700 hover:bg-amber-100'
+                    className={`flex-1 min-w-[52px] py-2 px-2 rounded-xl text-xs font-bold font-display cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-amber-600 text-white shadow-xs scale-102 ring-2 ring-amber-400'
+                        : isTargetDen
+                        ? 'bg-amber-200/90 border-2 border-amber-400 text-amber-950 hover:bg-amber-300'
+                        : 'bg-white border border-amber-200 text-stone-700 hover:bg-amber-100'
                     }`}
                   >
-                    {den}
+                    <span className="block text-sm">{den} fatias</span>
+                    <span className="block text-[10px] opacity-80 font-normal">
+                      1/{den} {den === 2 ? '(meios)' : den === 3 ? '(terços)' : den === 4 ? '(quartos)' : den === 5 ? '(quintos)' : den === 6 ? '(sextos)' : den === 8 ? '(oitavos)' : '(décimos)'}
+                    </span>
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {/* Interactive Fraction Canvas */}
-          <VisualFractionCanvas
-            denominator={denominator}
-            selectedIndices={selectedIndices}
-            onToggleSegment={handleToggleSegment}
-            visualType={currentLevel.visualType}
-            bodyMeasurement={currentLevel.bodyMeasurement}
-          />
+          {/* Step 2: Interactive Fraction Canvas (PIZZA / BARRA / GRADE) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-stone-600 px-1">
+              <span className="font-bold text-amber-950 font-display flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">
+                  2
+                </span>
+                Toque nas fatias ou blocos para pintar a fração da missão:
+              </span>
+            </div>
 
-          {/* Immediate Action Buttons & Live Validation */}
+            <VisualFractionCanvas
+              denominator={denominator}
+              selectedIndices={selectedIndices}
+              onToggleSegment={handleToggleSegment}
+              visualType={currentLevel.visualType}
+              bodyMeasurement={currentLevel.bodyMeasurement}
+              initialFormat="pizza"
+              targetFraction={{
+                num: currentLevel.targetNumerator,
+                den: currentLevel.targetDenominator,
+              }}
+            />
+          </div>
+
+          {/* Step 3: Immediate Actions & Live Validation */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={handleReset}
-                className="px-3 py-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                Recomeçar
+                Limpar Seleção
               </button>
               <button
+                type="button"
                 onClick={() => {
                   sound.playTap();
                   setShowHint(!showHint);
                 }}
-                className="px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
                 Dica da Menina
@@ -314,52 +380,63 @@ export const StoryMode: React.FC<StoryModeProps> = ({
             </div>
 
             <button
+              type="button"
               onClick={handleCheckAnswer}
-              className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-display font-bold text-sm shadow-md flex items-center gap-2 transition-all transform active:scale-95 cursor-pointer"
+              className="px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-display font-bold text-sm shadow-md flex items-center gap-2 transition-all transform active:scale-95 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 fill-amber-200" />
-              Verificar Medição!
+              Verificar se está Certo!
             </button>
           </div>
 
           {/* Hint Dropdown */}
           {showHint && (
-            <div className="p-3 bg-amber-100 border border-amber-300 rounded-xl text-xs text-amber-950 animate-in fade-in duration-150">
-              <strong className="block text-amber-900 font-bold mb-0.5">Dica:</strong>
-              {currentLevel.hint}
+            <div className="p-4 bg-amber-100/90 border-2 border-amber-300 rounded-2xl text-xs text-amber-950 animate-in fade-in duration-150 space-y-1">
+              <strong className="block text-amber-900 font-bold font-display text-sm">
+                💡 Dica da Menina do Livro:
+              </strong>
+              <p>{currentLevel.hint}</p>
+              <p className="text-[11px] text-stone-600 pt-1 font-handwriting">
+                Você pode trocar entre Formato Pizza (🍕), Barra (📏) ou Grade (🧱) a qualquer momento lá em cima!
+              </p>
             </div>
           )}
 
           {/* Feedback Banner with Immediate Visual Confirmation */}
           {feedback.message && (
             <div
-              className={`p-4 rounded-xl border-2 flex items-start gap-3 animate-in fade-in duration-200 ${
+              className={`p-5 rounded-2xl border-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in duration-200 ${
                 feedback.status === 'success'
-                  ? 'bg-emerald-50 border-emerald-400 text-emerald-950'
-                  : 'bg-amber-100/90 border-amber-400 text-amber-950'
+                  ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-sm'
+                  : 'bg-amber-100/95 border-amber-400 text-amber-950'
               }`}
             >
-              {feedback.status === 'success' ? (
-                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-              ) : (
-                <HelpCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              )}
-              <div className="space-y-1">
-                <p className="text-sm font-semibold">{feedback.message}</p>
-                <p className="text-xs opacity-90">{currentLevel.pedagogicalTip}</p>
-                {feedback.status === 'success' && currentLevelIndex < STORY_LEVELS.length - 1 && (
-                  <button
-                    onClick={() => {
-                      sound.playTap();
-                      onSelectLevelIndex(currentLevelIndex + 1);
-                    }}
-                    className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold font-display shadow-xs transition-colors cursor-pointer"
-                  >
-                    Avançar para a Fase {currentLevelIndex + 2}
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+              <div className="flex items-start gap-3">
+                {feedback.status === 'success' ? (
+                  <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <HelpCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
                 )}
+                <div className="space-y-1">
+                  <p className="text-sm font-bold leading-snug">{feedback.message}</p>
+                  <p className="text-xs opacity-90">{currentLevel.pedagogicalTip}</p>
+                </div>
               </div>
+
+              {/* Big Next Level Button */}
+              {feedback.status === 'success' && currentLevelIndex < STORY_LEVELS.length - 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playTap();
+                    onSelectLevelIndex(currentLevelIndex + 1);
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-display font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
+                >
+                  <span>Avançar para a Fase {currentLevelIndex + 2}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -387,10 +464,6 @@ export const StoryMode: React.FC<StoryModeProps> = ({
                 alt="Cena do livro Minha mão é uma régua"
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
-                onError={(e) => {
-                  // Fallback container
-                  (e.currentTarget as HTMLElement).style.display = 'none';
-                }}
               />
             </div>
             <p className="text-xs text-stone-600 mt-2 italic font-handwriting">
@@ -401,6 +474,7 @@ export const StoryMode: React.FC<StoryModeProps> = ({
           {/* Navigation Controls */}
           <div className="flex items-center justify-between gap-2 pt-2">
             <button
+              type="button"
               disabled={currentLevelIndex === 0}
               onClick={() => {
                 sound.playTap();
@@ -413,6 +487,7 @@ export const StoryMode: React.FC<StoryModeProps> = ({
             </button>
 
             <button
+              type="button"
               disabled={currentLevelIndex === STORY_LEVELS.length - 1}
               onClick={() => {
                 sound.playTap();
