@@ -1,0 +1,8 @@
+{
+  "name": "Minha Mão é uma Régua - Jogo das Frações",
+  "description": "Jogo pedagógico interativo de frações básicas para o 3º ano do Ensino Fundamental baseado no livro didático Minha mão é uma régua, com feedback visual imediato.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

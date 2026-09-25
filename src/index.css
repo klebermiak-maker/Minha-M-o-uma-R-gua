@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+.font-display {
+  font-family: 'Fredoka', 'Plus Jakarta Sans', cursive, sans-serif;
+}
+
+.font-handwriting {
+  font-family: 'Short Stack', cursive, sans-serif;
+}
+
+/* Subtle hand-drawn border effect for children book feel */
+.storybook-border {
+  border-style: solid;
+  border-color: #d97706;
+}
+
+/* Custom dashed stitching line */
+.sewing-stitch {
+  background-image: repeating-linear-gradient(to right, #b45309 0, #b45309 8px, transparent 8px, transparent 16px);
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
+  background-position: bottom;
+}
