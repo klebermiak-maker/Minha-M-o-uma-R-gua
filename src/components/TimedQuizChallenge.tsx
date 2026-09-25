@@ -112,7 +112,9 @@ export const TimedQuizChallenge: React.FC<TimedQuizChallengeProps> = ({
     setSelectedOption(optIndex);
     const currentQ = shuffledQuestions[currentStep];
     const chosen = currentQ.options[optIndex];
-    const isCorrect = chosen.num === currentQ.numerator && chosen.den === currentQ.denominator;
+    const isCorrect = chosen.isCorrect ?? (
+      Math.abs(chosen.num / chosen.den - currentQ.numerator / currentQ.denominator) < 0.001
+    );
 
     if (isCorrect) {
       sound.playSuccess();

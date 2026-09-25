@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Award, Printer, Sparkles, CheckCircle } from 'lucide-react';
 import { sound } from '../utils/sound';
 import { HandAvatar } from './HandAvatar';
+import badgeFractionMaster from '../assets/images/badge_fraction_master_1790319843531.jpg';
 
 interface CertificateModalProps {
   isOpen: boolean;
@@ -137,7 +138,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 rounded-full border-2 border-amber-500 bg-amber-200/80 flex items-center justify-center p-1 shadow-inner">
               <img
-                src="/src/assets/images/badge_fraction_master_1790319843531.jpg"
+                src={badgeFractionMaster}
                 alt="Selo de Frações"
                 className="w-full h-full object-cover rounded-full"
                 referrerPolicy="no-referrer"

@@ -16,6 +16,10 @@ import { FractionDisplay } from './FractionDisplay';
 import { DressVisualizer } from './DressVisualizer';
 import { sound, speakPortuguese } from '../utils/sound';
 
+import sceneMotherKnitting from '../assets/images/scene_mother_knitting_1790319815955.jpg';
+import sceneGardenSteps from '../assets/images/scene_garden_steps_1790319827557.jpg';
+import heroGirlMeasuring from '../assets/images/hero_girl_measuring_1790319804200.jpg';
+
 interface StoryModeProps {
   currentLevelIndex: number;
   completedLevels: number[];
@@ -65,10 +69,29 @@ export const StoryMode: React.FC<StoryModeProps> = ({
       denominator === currentLevel.targetDenominator;
 
     if (isTarget) {
+      sound.playConfettiPopper();
+      sound.playStarEarned();
+      setTimeout(() => {
+        sound.playApplause();
+      }, 250);
+
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 70,
+          origin: { y: 0.65 },
+          colors: ['#f59e0b', '#10b981', '#ec4899', '#3b82f6'],
+        });
+      } catch {
+        // ignore
+      }
+
       setFeedback({
         status: 'success',
-        message: `Excelente! Você representou ${next.length}/${denominator} com exatidão!`,
+        message: `Excelente! Você representou ${next.length}/${denominator} certinho! A medição está perfeita!`,
       });
+      speakPortuguese(`Muito bem! Você representou a fração ${next.length} sobre ${denominator} corretamente!`);
+      onCompleteLevel(currentLevel.id);
     } else {
       setFeedback({ status: 'idle', message: '' });
     }
@@ -138,10 +161,10 @@ export const StoryMode: React.FC<StoryModeProps> = ({
   // Pick illustrative scene banner from generated images based on level
   const sceneBanner =
     currentLevelIndex < 4
-      ? '/src/assets/images/scene_mother_knitting_1790319815955.jpg'
+      ? sceneMotherKnitting
       : currentLevelIndex === 4 || currentLevelIndex === 6
-      ? '/src/assets/images/scene_garden_steps_1790319827557.jpg'
-      : '/src/assets/images/hero_girl_measuring_1790319804200.jpg';
+      ? sceneGardenSteps
+      : heroGirlMeasuring;
 
   return (
     <div className="space-y-6">

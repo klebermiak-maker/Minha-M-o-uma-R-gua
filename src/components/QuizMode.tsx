@@ -57,8 +57,9 @@ export const QuizMode: React.FC<QuizModeProps> = ({
     if (answeredState === 'correct') return;
     setSelectedOptionIndex(index);
     const chosen = question.options[index];
-    const isCorrect =
-      chosen.num === question.numerator && chosen.den === question.denominator;
+    const isCorrect = chosen.isCorrect ?? (
+      Math.abs(chosen.num / chosen.den - question.numerator / question.denominator) < 0.001
+    );
 
     if (isCorrect) {
       sound.playSuccess();
@@ -361,8 +362,9 @@ export const QuizMode: React.FC<QuizModeProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               {question.options.map((opt, idx) => {
                 const isSelected = selectedOptionIndex === idx;
-                const isCorrect =
-                  opt.num === question.numerator && opt.den === question.denominator;
+                const isCorrect = opt.isCorrect ?? (
+                  Math.abs(opt.num / opt.den - question.numerator / question.denominator) < 0.001
+                );
 
                 let buttonClass =
                   'bg-white border-amber-200 text-stone-800 hover:bg-amber-50 hover:border-amber-400';

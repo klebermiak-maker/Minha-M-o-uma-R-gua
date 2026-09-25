@@ -1,6 +1,7 @@
 import React from 'react';
 import { BookOpen, Hand, Footprints, Sparkles, Volume2, Heart } from 'lucide-react';
 import { sound, speakPortuguese } from '../utils/sound';
+import heroGirlMeasuring from '../assets/images/hero_girl_measuring_1790319804200.jpg';
 
 export const BookGuide: React.FC = () => {
   const handleReadSection = (title: string, desc: string) => {
@@ -46,7 +47,7 @@ export const BookGuide: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center gap-5">
           <div className="relative w-36 sm:w-44 aspect-3/4 rounded-xl overflow-hidden border-2 border-amber-400 bg-amber-100 shadow-md shrink-0">
             <img
-              src="/src/assets/images/hero_girl_measuring_1790319804200.jpg"
+              src={heroGirlMeasuring}
               alt="Capa do livro Minha mão é uma régua"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"

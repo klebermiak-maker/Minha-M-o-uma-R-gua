@@ -13,14 +13,14 @@ import { CertificateModal } from './components/CertificateModal';
 import { AvatarClosetModal } from './components/AvatarClosetModal';
 import { HandAvatar } from './components/HandAvatar';
 import { sound } from './utils/sound';
-import { BookOpen, Sparkles, Wand2, HelpCircle, Shirt, HelpCircle as HelpIcon } from 'lucide-react';
+import { BookOpen, Sparkles, Wand2, HelpCircle, Shirt } from 'lucide-react';
 import { AVATAR_ACCESSORIES } from './types/avatar';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<'story' | 'lab' | 'quiz' | 'guide'>('story');
   const [currentLevelIndex, setCurrentLevelIndex] = useState<number>(0);
-  const [completedLevels, setCompletedLevels] = useState<number[]>([1]); // First level completed to encourage
-  const [stars, setStars] = useState<number>(6); // Start with 6 stars to showcase initial accessories
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
+  const [stars, setStars] = useState<number>(3); // Initial encouragement stars
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isCertificateOpen, setIsCertificateOpen] = useState<boolean>(false);
   const [isClosetOpen, setIsClosetOpen] = useState<boolean>(false);
